@@ -1,0 +1,44 @@
+version: "3.7"
+
+services:
+  postgres:
+    container_name: frost-postgres   # compose로 띄웠을때 생성될 컨테이너 이름이다. 여기에 명시해준 이름이 컨테이너 이름이 된다. 
+    build: # Dockerfile로 이미지 빌드 했다면 이렇게 build로 정의해 주어야 한다. 
+      context: ./postgres # Dockerfile의 경로를 적어주는 부분이다 
+    restart: always
+    environment:
+      TZ: Asia/Seoul
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: post123!
+      HIVE_DB_USER: hive # Beta DB USER
+      HIVE_DB_PASSWORD: hive123! # Meta DB USER Password
+      HIVE_DB_NAME: hive # Meta DB Name
+      FROST_UI_DB_USER: frost_ui # frost-ui DB USER
+      FROST_UI_DB_PASSWORD: frost_ui123! # frost-ui DB USER Password
+      FROST_UI_DB_NAME: frost_ui # frost-ui DB Name
+    volumes: # 사용할 볼륨과 그 볼륨의 경로를 적어준다.
+      - frost-postgres-volume:/var/lib/docker/volumes
+    ports:
+      - 5491:5432
+
+  apache-zeppelin:
+    container_name: ai_voucher_zeppelin
+    image: iyong829/ai_zeppelin:latest  # compose.yml파일과 동일 경로 선상에 컨테이너로 띄울 어플리케이션 디렉토리가 있어야 하고 해당 디렉토리에는 dockerfile도 있어야 하지만
+                                        # 이렇게 도커 허브에서 바로 이미지 pull 받아와서 compose로 컨테이너 띄울수도 있다. 
+                                        # 이 경우에는 build 로 정의 하는게 아니고 image로 정의 한다. 
+    restart: always
+    environment:
+      TZ: Asia/Seoul
+    volumes:
+      - /opt/zeppelin/ai_voucher:/opt/zeppelin/ai_voucher
+      - /opt/zeppelin/notebook:/opt/zeppelin/notebook
+      - /opt/zeppelin/conf:/opt/zeppelin/conf
+      - /opt/zeppelin/logs:/opt/zeppelin/logs
+    ports:
+      - 8088:8080
+
+volumes: # 사용할 어플리케이션에 volumes 사용하겠다고 정의 했을지라도 마지막에
+         # 이렇게 사용할 volumes를 등록해 줘야 한다. 
+         # 이때! 주의!!! indent는 service와 같은 indent여야 한다. service 하위가 아니고 동일 선상!
+  frost-postgres-volume:    # 사용할 볼륨 이름을 적어주고 콜론 붙여준다. (콜론 뒤에 경로를 적거나 하는게 아니다 그냥 비워 두면 된다. 이런 이름의 볼륨을 사용하겠다는 문법일뿐!)
+
